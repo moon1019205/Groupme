@@ -1,44 +1,19 @@
 #!/bin/env node
-var http, director, bot, router, server, port, db;
+var http, director, bot, router, server, db;
+const express, port, path;
 
-http        = require('http');
-director    = require('director');
+port        = process.env.port || 5000
+express     = require('express')
 bot         = require('./bot.js');
+path        = require('path')
 
-router = new director.http.Router({
-  '/'    : {
-    get: ping
-  },
-  '/init' : {
-    get:  bot.init,
-    post: bot.init
-  },
-  '/commands' : {
-    get: bot.commands
-  },
-  '/bot/:botRoom' : {
-    get: ping,
-    post: bot.respond
-  },
-});
 
-server = http.createServer(function (req, res) {
-  req.chunks = [];
-
-  req.on('data', function (chunk) {
-    req.chunks.push(chunk.toString());
-  });
-
-  router.dispatch(req, res, function(err) {
-    res.writeHead(err.status, {"Content-Type": "text/plain"});
-    res.end(err.message);
-  });
-});
-
-const PORT = process.env.PORT || 5000);
-ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-
-server.listen(port, ip);
+express()
+  .use(express.static(path.join(__dirname, 'public')))
+  .set('views', path.join(__dirname, 'views'))
+  .set('view engine', 'ejs')
+  .get('/', (req, res) => res.render('pages/index'))
+  .listen(PORT, () => console.log(`Listening on ${ PORT }`))
 
 function ping() {
   this.res.writeHead(200);
